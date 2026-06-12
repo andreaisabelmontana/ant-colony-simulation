@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Antfarm — colony foraging</title>
+  <meta name="description" content="An ant-colony foraging simulation: emergent shortest-path trails from pheromones, with no central planner." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐜</text></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <header class="hud">
+    <h1>Antfarm</h1>
+    <p class="tag">No leader. Just pheromones.</p>
+  </header>
+
+  <aside class="panel" id="panel">
+    <button class="collapse" id="collapse" title="Hide panel">‹</button>
+
+    <section>
+      <label>Ants <span data-out="ants">350</span></label>
+      <input type="range" id="ants" min="50" max="1200" step="50" value="350" />
+    </section>
+
+    <section>
+      <h2>Pheromones</h2>
+      <label>Evaporation <span data-out="evap">0.30</span></label>
+      <input type="range" id="evap" min="0.02" max="1.2" step="0.02" value="0.30" />
+      <label>Deposit <span data-out="dep">60</span></label>
+      <input type="range" id="dep" min="10" max="160" step="5" value="60" />
+      <label>Sensor angle <span data-out="ang">35</span>°</label>
+      <input type="range" id="ang" min="10" max="70" step="1" value="35" />
+      <label>Wander <span data-out="wan">0.30</span></label>
+      <input type="range" id="wan" min="0" max="1" step="0.02" value="0.30" />
+    </section>
+
+    <section class="toggles">
+      <label class="chk"><input type="checkbox" id="showpher" checked /> Show pheromones</label>
+    </section>
+
+    <div class="btns">
+      <button id="reset">Reset colony</button>
+    </div>
+    <p class="hint">Click / drag on the field to drop <em>food</em>. Watch trails sharpen toward the nearest pile, then re-route when it's eaten.</p>
+  </aside>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
