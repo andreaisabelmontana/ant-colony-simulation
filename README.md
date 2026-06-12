@@ -1,8 +1,8 @@
-# Antfarm
+# Ant Colony Simulation
 
 An **ant-colony foraging** simulation. No ant knows where the food is and there's no central planner — yet the colony reliably discovers near-shortest paths to food, then re-routes when a pile runs out. All of it emerges from two evaporating pheromone fields.
 
-**▶ Live:** https://andreaisabelmontana.github.io/antfarm/
+**▶ Live:** https://andreaisabelmontana.github.io/ant-colony-simulation/
 
 > **Not an original idea.** This recreates the concept of an existing project — I didn't invent it. I rebuilt it from scratch, my own way, out of curiosity about how it actually works (and tried to make it a little better along the way).
 

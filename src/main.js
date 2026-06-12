@@ -1,4 +1,4 @@
-// Antfarm — ant-colony foraging.
+// Ant Colony Simulation — ant-colony foraging.
 //
 // No ant knows where the food is. Each one wanders, and:
 //   • while SEARCHING it follows the "to-food" pheromone and lays "to-home"
