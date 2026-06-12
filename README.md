@@ -4,6 +4,8 @@ An **ant-colony foraging** simulation. No ant knows where the food is and there'
 
 **▶ Live:** https://andreaisabelmontana.github.io/antfarm/
 
+> **Not an original idea.** This recreates the concept of an existing project — I didn't invent it. I rebuilt it from scratch, my own way, out of curiosity about how it actually works (and tried to make it a little better along the way).
+
 ## How it works
 
 Each ant alternates between two jobs:
