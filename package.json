@@ -1,0 +1,10 @@
+{
+  "name": "ant-colony-simulation",
+  "version": "1.0.0",
+  "description": "Ant-colony foraging simulation with a tested ACO core (pheromone deposit, evaporation, probabilistic transition, emergent shortest paths).",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  }
+}

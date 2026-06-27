@@ -7,13 +7,19 @@
 // so shorter round-trips reinforce their trail more — the colony converges on
 // near-shortest paths to food with no central planner. Trails evaporate, so
 // when a pile is eaten the network re-routes to the next one.
+//
+// The pheromone deposit + evaporation math lives in the framework-free core
+// (src/aco.js, the same module the tests exercise); this file is just the
+// canvas demo that drives it.
+
+import { PheromoneField } from "./aco.js";
 
 const canvas = document.getElementById("stage");
 const ctx = canvas.getContext("2d");
 
 const CELL = 5; // pheromone grid resolution (px)
 let W, H, cols, rows;
-let pherFood, pherHome; // Float32Array fields
+let pherFood, pherHome; // PheromoneField instances
 let field; // offscreen canvas for the heatmap
 
 const off = document.createElement("canvas");
@@ -40,8 +46,9 @@ function resize() {
   canvas.style.width = W + "px"; canvas.style.height = H + "px";
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   cols = Math.ceil(W / CELL); rows = Math.ceil(H / CELL);
-  pherFood = new Float32Array(cols * rows);
-  pherHome = new Float32Array(cols * rows);
+  // rho is set from the UI each frame via field.rho; start with the demo default.
+  pherFood = new PheromoneField(cols, rows, cfg.evap * 0.02);
+  pherHome = new PheromoneField(cols, rows, cfg.evap * 0.02);
   off.width = cols; off.height = rows;
   field = offCtx.createImageData(cols, rows);
   nest = { x: W * 0.2, y: H * 0.5, r: 16 };
@@ -67,35 +74,26 @@ function spawnAnts() {
 
 function reset() {
   resize();
-  pherFood.fill(0); pherHome.fill(0);
+  pherFood.grid.fill(0); pherHome.grid.fill(0);
   seedFoods();
   spawnAnts();
 }
 
-function idx(cx, cy) { return cy * cols + cx; }
-
-function sense(field, x, y, ang) {
+// Sense the 3x3 pheromone reading a sensor at (x,y) heading `ang` sees.
+// Returns -1 when the sensor lands off-grid, signalling "steer away".
+function sense(pf, x, y, ang) {
   const sx = x + Math.cos(ang) * SENSOR_DIST;
   const sy = y + Math.sin(ang) * SENSOR_DIST;
   const cx = Math.floor(sx / CELL), cy = Math.floor(sy / CELL);
   if (cx < 0 || cy < 0 || cx >= cols || cy >= rows) return -1; // off-grid: avoid
-  // 3x3 sum for a smoother gradient
-  let s = 0;
-  for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
-    const nx = cx + ox, ny = cy + oy;
-    if (nx >= 0 && ny >= 0 && nx < cols && ny < rows) s += field[idx(nx, ny)];
-  }
-  return s;
+  return pf.senseNeighborhood(cx, cy);
 }
 
-function depositAt(field, x, y, amt) {
+function depositAt(pf, x, y, amt) {
   const cx = Math.floor(x / CELL), cy = Math.floor(y / CELL);
   for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) {
-    const nx = cx + ox, ny = cy + oy;
-    if (nx >= 0 && ny >= 0 && nx < cols && ny < rows) {
-      const w = (ox === 0 && oy === 0) ? 1 : 0.4;
-      field[idx(nx, ny)] += amt * w;
-    }
+    const w = (ox === 0 && oy === 0) ? 1 : 0.4;
+    pf.deposit(cx + ox, cy + oy, amt * w);
   }
 }
 
@@ -159,12 +157,10 @@ function step() {
     }
   }
 
-  // evaporate
-  const k = 1 - cfg.evap * 0.02;
-  for (let i = 0; i < pherFood.length; i++) {
-    pherFood[i] *= k;
-    pherHome[i] *= k;
-  }
+  // evaporate: every cell *= (1 - rho), driven by the live evaporation slider
+  pherFood.rho = pherHome.rho = cfg.evap * 0.02;
+  pherFood.evaporate();
+  pherHome.evaporate();
 }
 
 function render() {
@@ -173,9 +169,10 @@ function render() {
 
   if (cfg.showPher) {
     const d = field.data;
-    for (let i = 0; i < pherFood.length; i++) {
-      const f = Math.min(255, pherFood[i] * 0.7);
-      const h = Math.min(255, pherHome[i] * 0.7);
+    const gf = pherFood.grid, gh = pherHome.grid;
+    for (let i = 0; i < gf.length; i++) {
+      const f = Math.min(255, gf[i] * 0.7);
+      const h = Math.min(255, gh[i] * 0.7);
       const o = i * 4;
       d[o] = h * 0.4;            // home → cool blue-violet
       d[o + 1] = f * 0.8 + h * 0.2; // food → green
@@ -270,6 +267,6 @@ window.__antfarm = {
   step, render, reset, cfg,
   get foods() { return foods; },
   get dims() { return { W, H, cols, rows }; },
-  get pher() { let s = 0; for (let i = 0; i < pherHome.length; i++) s += pherHome[i] + pherFood[i]; return s; },
+  get pher() { return pherHome.total() + pherFood.total(); },
   get counts() { let c = 0; for (let i = 0; i < acarry.length; i++) c += acarry[i]; return { carrying: c, total: acarry.length }; },
 };
